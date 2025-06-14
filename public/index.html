@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battleship - AI Challenge</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Battleship - AI Challenge</h1>
+        <div class="game-container">
+            <div class="player-board">
+                <h2>Your Board</h2>
+                <div id="player-grid"></div>
+            </div>
+            <div class="ai-board">
+                <h2>AI Board</h2>
+                <div id="ai-grid"></div>
+            </div>
+        </div>
+        <div class="status">
+            <p id="status-text">Place your ships!</p>
+            <button id="start-game" disabled>Start Game</button>
+        </div>
+        <div class="ship-legend">
+            <h3>Ship Legend</h3>
+            <ul>
+                <li class="legend-item carrier"><span class="color-box"></span> Carrier (5 cells)</li>
+                <li class="legend-item battleship"><span class="color-box"></span> Battleship (4 cells)</li>
+                <li class="legend-item destroyer"><span class="color-box"></span> Destroyer (3 cells)</li>
+                <li class="legend-item submarine"><span class="color-box"></span> Submarine (3 cells)</li>
+                <li class="legend-item patrol-boat"><span class="color-box"></span> Patrol Boat (2 cells)</li>
+            </ul>
+        </div>
+    </div>
+    <script src="js/game.js"></script>
+</body>
+</html>

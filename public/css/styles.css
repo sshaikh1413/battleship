@@ -1,0 +1,295 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f8ff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+h1 {
+    color: #191970;
+    margin-bottom: 2rem;
+}
+
+.game-container {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+    flex-direction: row;
+}
+
+.player-board, .ai-board {
+    border: 2px solid #191970;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+h2 {
+    color: #191970;
+    margin-bottom: 1rem;
+}
+
+#player-grid, #ai-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 40px);
+    grid-template-rows: repeat(10, 40px);
+    gap: 2px;
+}
+
+.grid-cell {
+    width: 40px;
+    height: 40px;
+    background-color: #e6f0ff;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.ship {
+    background-color: #191970;
+}
+
+/* Ship type specific colors */
+.ship-carrier {
+    background-color: #800000; /* Maroon */
+}
+
+.ship-battleship {
+    background-color: #006400; /* Dark Green */
+}
+
+.ship-destroyer {
+    background-color: #4B0082; /* Indigo */
+}
+
+.ship-submarine {
+    background-color: #FF8C00; /* Dark Orange */
+}
+
+.ship-patrol-boat {
+    background-color: #4682B4; /* Steel Blue */
+}
+
+/* Ship Legend Styles */
+.ship-legend {
+    margin-top: 20px;
+    padding: 15px;
+    border: 2px solid #191970;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.ship-legend h3 {
+    margin-top: 0;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.ship-legend ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.color-box {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    border-radius: 3px;
+}
+
+/* Color boxes for each ship type */
+.carrier .color-box {
+    background-color: #800000; /* Maroon */
+}
+
+.battleship .color-box {
+    background-color: #006400; /* Dark Green */
+}
+
+.destroyer .color-box {
+    background-color: #4B0082; /* Indigo */
+}
+
+.submarine .color-box {
+    background-color: #FF8C00; /* Dark Orange */
+}
+
+.patrol-boat .color-box {
+    background-color: #4682B4; /* Steel Blue */
+}
+
+.hit {
+    background-color: #ff4444;
+}
+
+.sunk {
+    position: relative;
+}
+
+.sunk::after {
+    content: '☠️';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5rem;
+    z-index: 10;
+}
+
+.miss {
+    background-color: #cccccc;
+}
+
+.status {
+    margin-top: 2rem;
+}
+
+#status-text {
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+button {
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    background-color: #191970;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin: 0.5rem;
+}
+
+button:hover {
+    background-color: #333399;
+}
+
+button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+/* Difficulty selection styles */
+.difficulty-container {
+    margin: 1rem 0;
+}
+
+.difficulty-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.difficulty-btn {
+    padding: 0.5rem 1.5rem;
+    border-radius: 20px;
+    background-color: #6c757d;
+    transition: all 0.3s ease;
+}
+
+.difficulty-btn.active {
+    background-color: #28a745;
+    box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+}
+
+/* Multi-hit attack button styles */
+.special-attack-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: #dc3545;
+    padding: 0.5rem 1.5rem;
+    margin: 1rem auto;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+
+.special-attack-btn:hover {
+    background-color: #c82333;
+    transform: scale(1.05);
+}
+
+.special-attack-btn.active {
+    background-color: #ffc107;
+    color: #212529;
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.7);
+}
+
+.special-attack-btn .counter {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+/* Multi-hit highlight effect */
+.multi-hit-highlight {
+    background-color: rgba(255, 193, 7, 0.5);
+    box-shadow: 0 0 5px #ffc107;
+}
+
+/* Explosion animation for multi-hit attacks */
+.explosion {
+    animation: explode 1s ease-out;
+}
+
+@keyframes explode {
+    0% {
+        transform: scale(0.8);
+        background-color: rgba(255, 87, 34, 0.9);
+        box-shadow: 0 0 40px rgba(255, 87, 34, 0.8), 0 0 20px rgba(255, 87, 34, 0.6) inset;
+    }
+    50% {
+        transform: scale(1.2);
+        background-color: rgba(255, 193, 7, 0.8);
+        box-shadow: 0 0 70px rgba(255, 193, 7, 0.8), 0 0 30px rgba(255, 193, 7, 0.6) inset;
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+#regenerate-ships {
+    background-color: #2c3e50;
+}
+
+#regenerate-ships:hover {
+    background-color: #34495e;
+}
+
+#regenerate-ships:disabled {
+    background-color: #95a5a6;
+    cursor: not-allowed;
+}

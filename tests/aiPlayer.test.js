@@ -189,5 +189,37 @@ describe('AIPlayer', () => {
       expect(x).toBe(4);
       expect(y).toBe(5);
     });
+    
+    test('AI never prematurely switches to hunt mode before fully destroying a ship', () => {
+      // Set up a hit
+      hardAI.huntMode = false;
+      hardAI.hitStack = [[5, 5]];
+      
+      // Try all four directions and miss
+      hardAI.updateStrategy('miss', 6, 5); // Right
+      hardAI.updateStrategy('miss', 4, 5); // Left
+      hardAI.updateStrategy('miss', 5, 4); // Up
+      hardAI.updateStrategy('miss', 5, 6); // Down
+      
+      // Even after trying all directions, AI should still be in targeting mode
+      // because there's still a hit in the hitStack
+      expect(hardAI.huntMode).toBe(false);
+      expect(hardAI.hitStack.length).toBe(1);
+      
+      // The AI has tried all four directions
+      expect(hardAI.triedDirections.length).toBe(4);
+      
+      // Mock the _getAdjacentCellsToHits method to return a valid move
+      hardAI._getAdjacentCellsToHits = jest.fn().mockReturnValue([[4, 4]]);
+      
+      // Get the next move - should still be in targeting mode
+      const move = hardAI._getTargetModeShot();
+      expect(move).toBeTruthy();
+      
+      // Only after a ship is sunk should the AI switch back to hunt mode
+      hardAI.updateStrategy('sunk', 5, 5);
+      expect(hardAI.huntMode).toBe(true);
+      expect(hardAI.hitStack.length).toBe(0);
+    });
   });
 });

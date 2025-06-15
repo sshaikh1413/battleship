@@ -167,59 +167,69 @@ class AIPlayer {
     }
 
     getNextMove() {
-        // For test compatibility - ensure target mode works as expected
+        console.log('AI deciding next move, difficulty:', this.difficulty);
+        console.log('Hunt mode:', this.huntMode, 'Hit stack size:', this.hitStack.length);
+        
+        // ALWAYS prioritize targeting mode if we have any hits in the hitStack
+        if (this.hitStack.length > 0) {
+            this.huntMode = false;  // Force targeting mode if we have hits
+            console.log('Forcing targeting mode due to existing hits');
+        }
+        
+        // In hard mode, use the advanced targeting strategy
+        if (this.difficulty === 'hard') {
+            // If we're in targeting mode with hits, use advanced targeting
+            if (!this.huntMode && this.hitStack.length > 0) {
+                console.log('Using advanced targeting strategy with hit stack');
+                return this._getHardModeMove();
+            }
+            // Otherwise use hunt mode with probability map
+            else {
+                console.log('Using hunt mode with probability map');
+                return this._getHuntModeShot();
+            }
+        }
+        
+        // For easy mode or fallback
         if (!this.huntMode && this.lastHit) {
-            // Target mode with lastHit (test scenario)
             const [lastX, lastY] = this.lastHit;
+            console.log(`Basic targeting from last hit at ${lastX},${lastY}`);
+            
+            // If we have multiple hits, use the advanced targeting strategy
+            if (this.hitStack.length > 1) {
+                console.log('Multiple hits detected, using multi-hit targeting');
+                const multiHitShot = this._getMultiHitTargetingShot();
+                if (multiHitShot) {
+                    return multiHitShot;
+                }
+            }
+            
+            // Try adjacent cells in all four directions
             const directions = [
-                [lastX - 1, lastY],
-                [lastX + 1, lastY],
-                [lastX, lastY - 1],
-                [lastX, lastY + 1]
+                [lastX - 1, lastY], // left
+                [lastX + 1, lastY], // right
+                [lastX, lastY - 1], // up
+                [lastX, lastY + 1]  // down
             ];
             
+            // Filter for valid moves that haven't been tried
             const validMoves = directions.filter(([x, y]) => 
-                x >= 0 && x < 10 && y >= 0 && y < 10 && 
-                !this.possibleHits.has(`${x},${y}`)
+                x >= 0 && x < 10 && y >= 0 && y < 10 && this.shotHistory[y][x] === null
             );
             
             if (validMoves.length > 0) {
-                const [x, y] = validMoves[Math.floor(Math.random() * validMoves.length)];
+                // Choose a random valid move
+                const randomIndex = Math.floor(Math.random() * validMoves.length);
+                const [x, y] = validMoves[randomIndex];
+                console.log(`Targeting adjacent cell at ${x},${y}`);
                 this.possibleHits.add(`${x},${y}`);
                 return [x, y];
             }
         }
         
-        // Check if we should use multi-hit attack
-        if (this.multiHitAttacksRemaining > 0 && Math.random() < 0.3) { // 30% chance to use multi-hit attack
-            this.usingMultiHitAttack = true;
-            
-            // Choose a random valid cell for the center of the multi-hit attack
-            let centerX, centerY;
-            let validCenter = false;
-            let attempts = 0;
-            
-            while (!validCenter && attempts < 50) {
-                attempts++;
-                [centerX, centerY] = this._getRandomShot();
-                
-                // Check if all four surrounding cells are valid targets
-                const surroundingCells = [
-                    [centerX - 1, centerY],
-                    [centerX + 1, centerY],
-                    [centerX, centerY - 1],
-                    [centerX, centerY + 1]
-                ];
-                
-                validCenter = surroundingCells.every(([x, y]) => 
-                    x >= 0 && x < 10 && y >= 0 && y < 10
-                );
-            }
-            
-            if (validCenter) {
-                return [centerX, centerY];
-            }
-        }
+        // Multi-hit attack logic is now handled by the game.js aiTurn method
+        // which will call this method to get the center point for the multi-hit attack
+        // at specific turns (3 and 6) in hard mode
         
         // Regular attack based on difficulty
         if (this.difficulty === 'easy') {
@@ -230,17 +240,21 @@ class AIPlayer {
                     [x, y] = this._getRandomShot();
                 } while (this.possibleHits.has(`${x},${y}`));
                 
+                console.log(`Easy mode random shot at ${x},${y}`);
                 this.possibleHits.add(`${x},${y}`);
                 return [x, y];
             } else {
                 // Target mode: try adjacent cells to last hit
+                console.log('Easy mode target shot');
                 return this._getTargetModeShot();
             }
         } else {
             // Advanced strategy for hard mode
             if (this.huntMode) {
+                console.log('Hard mode hunt shot');
                 return this._getHuntModeShot();
             } else {
+                console.log('Hard mode target shot');
                 return this._getTargetModeShot();
             }
         }
@@ -291,9 +305,19 @@ class AIPlayer {
             }
         }
         
+        // ALWAYS prioritize targeting mode if we have hits in the hitStack
+        if (this.hitStack.length > 0) {
+            this.huntMode = false;
+            console.log('AI in targeting mode with', this.hitStack.length, 'hits');
+            console.log('Current hitStack:', JSON.stringify(this.hitStack));
+        }
+        
+        // Deterministic decision based on mode
         if (this.huntMode) {
+            console.log('AI using hunt mode strategy');
             return this._getHuntModeShot();
         } else {
+            console.log('AI using target mode strategy');
             return this._getTargetModeShot();
         }
     }
@@ -346,13 +370,15 @@ class AIPlayer {
     }
     
     _getTargetModeShot() {
-        // If we have multiple hits, determine the ship orientation
+        // If we have multiple hits, use the advanced multi-hit targeting strategy
         if (this.hitStack.length > 1) {
+            console.log('Using multi-hit targeting strategy with', this.hitStack.length, 'hits');
             return this._getMultiHitTargetingShot();
         }
         
         // Otherwise, use the basic targeting approach but with probability weighting
         const [lastX, lastY] = this.hitStack[0] || this.lastHit;
+        console.log(`Basic targeting from hit at ${lastX},${lastY}`);
         
         // Define directions in a specific order: prioritize directions not yet tried
         const allDirections = [
@@ -364,14 +390,15 @@ class AIPlayer {
         
         // Filter out directions we've already tried
         const untried = allDirections.filter(([dir, _]) => !this.triedDirections.includes(dir));
+        console.log('Untried directions:', untried.map(d => d[0]));
         
         // If we have untried directions, prioritize those
         const directionsToCheck = untried.length > 0 ? untried : allDirections;
         
         // Get valid moves from our directions
         const validMoves = directionsToCheck
-            .map(([_, coords]) => coords)
-            .filter(([x, y]) => 
+            .map(([dir, coords]) => ({dir, coords}))
+            .filter(({coords: [x, y]}) => 
                 x >= 0 && x < 10 && y >= 0 && y < 10 && 
                 this.shotHistory[y][x] === null
             );
@@ -382,21 +409,41 @@ class AIPlayer {
             let highestProb = 0;
             let bestMoves = [];
             
-            validMoves.forEach(([x, y]) => {
+            validMoves.forEach(({dir, coords: [x, y]}) => {
                 if (probMap[y][x] > highestProb) {
                     highestProb = probMap[y][x];
-                    bestMoves = [[x, y]];
+                    bestMoves = [{dir, x, y}];
                 } else if (probMap[y][x] === highestProb) {
-                    bestMoves.push([x, y]);
+                    bestMoves.push({dir, x, y});
                 }
             });
             
             // Choose the highest probability move
-            const [x, y] = bestMoves[Math.floor(Math.random() * bestMoves.length)];
+            const {dir, x, y} = bestMoves[Math.floor(Math.random() * bestMoves.length)];
+            console.log(`Targeting ${dir} direction at ${x},${y} with probability ${highestProb}`);
             this.possibleHits.add(`${x},${y}`);
             return [x, y];
         } else {
-            // If no valid moves around the hit, revert to hunt mode
+            // CRITICAL: If no valid moves around the hit but we still have hits in the hitStack,
+            // we should NOT revert to hunt mode. Instead, reset tried directions and try again.
+            if (this.hitStack.length > 0) {
+                console.log('No valid moves around current hit, but still have hits in hitStack');
+                console.log('Resetting tried directions to continue targeting');
+                this.triedDirections = [];
+                
+                // Try adjacent cells to any hit
+                const adjacentCells = this._getAdjacentCellsToHits();
+                if (adjacentCells.length > 0) {
+                    const [x, y] = adjacentCells[0];
+                    console.log(`Targeting cell adjacent to hits: ${x},${y}`);
+                    this.possibleHits.add(`${x},${y}`);
+                    return [x, y];
+                }
+                
+                // If still no valid moves, only then fall back to hunt mode
+                console.log('No valid targeting options, reluctantly falling back to hunt mode');
+            }
+            
             this.huntMode = true;
             this.hitStack = [];
             this.triedDirections = [];
@@ -406,12 +453,14 @@ class AIPlayer {
     
     _getMultiHitTargetingShot() {
         const hits = this.hitStack;
+        console.log('AI using multi-hit targeting with hits:', hits);
         
         // Check if hits are in a horizontal line
         const horizontalHits = hits.filter(([x, y]) => y === hits[0][1]);
         if (horizontalHits.length > 1) {
             // Set current direction for better tracking
             this.currentDirection = 'horizontal';
+            console.log('Ship orientation detected: horizontal');
             
             // Sort by x coordinate
             horizontalHits.sort((a, b) => a[0] - b[0]);
@@ -422,19 +471,22 @@ class AIPlayer {
             // Check for gaps in the horizontal line (could be a ship with a missed shot)
             for (let x = minX + 1; x < maxX; x++) {
                 if (this.shotHistory[y][x] === null) {
+                    console.log(`AI targeting gap at ${x},${y} in horizontal ship`);
                     this.possibleHits.add(`${x},${y}`);
                     return [x, y]; // Target the gap first
                 }
             }
             
-            // Try left side if valid and not already tried
-            if (minX > 0 && this.shotHistory[y][minX-1] === null && !this.triedDirections.includes('left')) {
+            // Try left side if valid
+            if (minX > 0 && this.shotHistory[y][minX-1] === null) {
+                console.log(`AI targeting left side at ${minX-1},${y}`);
                 this.possibleHits.add(`${minX-1},${y}`);
                 return [minX-1, y];
             }
             
-            // Try right side if valid and not already tried
-            if (maxX < 9 && this.shotHistory[y][maxX+1] === null && !this.triedDirections.includes('right')) {
+            // Try right side if valid
+            if (maxX < 9 && this.shotHistory[y][maxX+1] === null) {
+                console.log(`AI targeting right side at ${maxX+1},${y}`);
                 this.possibleHits.add(`${maxX+1},${y}`);
                 return [maxX+1, y];
             }
@@ -445,6 +497,7 @@ class AIPlayer {
         if (verticalHits.length > 1) {
             // Set current direction for better tracking
             this.currentDirection = 'vertical';
+            console.log('Ship orientation detected: vertical');
             
             // Sort by y coordinate
             verticalHits.sort((a, b) => a[1] - b[1]);
@@ -455,19 +508,22 @@ class AIPlayer {
             // Check for gaps in the vertical line
             for (let y = minY + 1; y < maxY; y++) {
                 if (this.shotHistory[y][x] === null) {
+                    console.log(`AI targeting gap at ${x},${y} in vertical ship`);
                     this.possibleHits.add(`${x},${y}`);
                     return [x, y]; // Target the gap first
                 }
             }
             
-            // Try top side if valid and not already tried
-            if (minY > 0 && this.shotHistory[minY-1][x] === null && !this.triedDirections.includes('up')) {
+            // Try top side if valid
+            if (minY > 0 && this.shotHistory[minY-1][x] === null) {
+                console.log(`AI targeting top side at ${x},${minY-1}`);
                 this.possibleHits.add(`${x},${minY-1}`);
                 return [x, minY-1];
             }
             
-            // Try bottom side if valid and not already tried
-            if (maxY < 9 && this.shotHistory[maxY+1][x] === null && !this.triedDirections.includes('down')) {
+            // Try bottom side if valid
+            if (maxY < 9 && this.shotHistory[maxY+1][x] === null) {
+                console.log(`AI targeting bottom side at ${x},${maxY+1}`);
                 this.possibleHits.add(`${x},${maxY+1}`);
                 return [x, maxY+1];
             }
@@ -475,26 +531,52 @@ class AIPlayer {
         
         // If we can't determine a clear direction or have tried all directions,
         // try any adjacent cell to any hit that hasn't been tried yet
-        for (const [hitX, hitY] of hits) {
+        
+        // First, prioritize cells adjacent to multiple hits
+        // This helps identify ships that might be in unusual configurations
+        const adjacentCells = this._getAdjacentCellsToHits();
+        
+        if (adjacentCells.length > 0) {
+            const [x, y] = adjacentCells[0]; // Use the highest priority cell (most adjacent hits)
+            console.log(`AI targeting cell adjacent to multiple hits: ${x},${y}`);
+            this.possibleHits.add(`${x},${y}`);
+            return [x, y];
+        }
+        
+        // If no adjacent cells are available, fall back to basic targeting
+        console.log('No clear targeting strategy, falling back to basic targeting');
+        return this._getTargetModeShot();
+    }
+    
+    _getAdjacentCellsToHits() {
+        // Find all cells adjacent to hits that haven't been tried yet
+        const adjacentCounts = {};
+        
+        for (const [hitX, hitY] of this.hitStack) {
             const adjacentCells = [
-                ['right', [hitX + 1, hitY]],
-                ['left', [hitX - 1, hitY]],
-                ['down', [hitX, hitY + 1]],
-                ['up', [hitX, hitY - 1]]
+                [hitX - 1, hitY], // left
+                [hitX + 1, hitY], // right
+                [hitX, hitY - 1], // up
+                [hitX, hitY + 1]  // down
             ];
             
-            for (const [dir, [x, y]] of adjacentCells) {
-                if (x >= 0 && x < 10 && y >= 0 && y < 10 && 
-                    this.shotHistory[y][x] === null && 
-                    !this.triedDirections.includes(dir)) {
-                    this.possibleHits.add(`${x},${y}`);
-                    return [x, y];
+            for (const [x, y] of adjacentCells) {
+                if (x >= 0 && x < 10 && y >= 0 && y < 10 && this.shotHistory[y][x] === null) {
+                    const key = `${x},${y}`;
+                    adjacentCounts[key] = (adjacentCounts[key] || 0) + 1;
                 }
             }
         }
         
-        // If we've tried all reasonable options, fall back to basic targeting
-        return this._getTargetModeShot();
+        // Convert to array of coordinates and sort by count (highest first)
+        const sortedCoords = Object.entries(adjacentCounts)
+            .map(([key, count]) => {
+                const [x, y] = key.split(',').map(Number);
+                return { x, y, count };
+            })
+            .sort((a, b) => b.count - a.count);
+        
+        return sortedCoords.map(coord => [coord.x, coord.y]);
     }
     
     _getRandomUntriedShot() {
@@ -581,37 +663,53 @@ class AIPlayer {
         } else {
             // Advanced strategy for hard mode
             if (result === 'hit') {
+                // Always store the last hit and force targeting mode
+                this.lastHit = [x, y];
                 this.huntMode = false;
                 this.hitStack.push([x, y]);
+                
+                console.log(`AI hit at ${x},${y}, hitStack now has ${this.hitStack.length} hits`);
                 
                 // Determine ship orientation if we have multiple hits
                 if (this.hitStack.length > 1) {
                     this._determineShipOrientation();
+                    console.log(`Ship orientation determined: ${this.currentDirection || 'unknown'}`);
                 }
                 
                 // Reset tried directions when we get a new hit to ensure we explore all options
                 if (this.hitStack.length === 1) {
                     this.triedDirections = [];
+                    console.log('First hit, resetting tried directions');
                 }
                 
-                // If we've tried all directions and still have hits, we might be dealing with multiple ships
-                // or a complex situation - don't reset to hunt mode too early
-                if (this.triedDirections.length >= 4 && this.hitStack.length <= 1) {
-                    this.huntMode = true;
-                    this.hitStack = [];
+                // If we've tried all directions but still have hits, reset directions
+                // This ensures we don't get stuck and can try different approaches
+                if (this.triedDirections.length >= 4 && this.hitStack.length >= 1) {
+                    console.log('Tried all directions but still have hits, resetting directions');
                     this.triedDirections = [];
-                    this.currentDirection = null;
                 }
+                
+                // CRITICAL: We NEVER go back to hunt mode if we have hits in the hitStack
+                // This forces the AI to stay focused on destroying the current ship
             } else if (result === 'miss') {
+                console.log(`AI missed at ${x},${y}`);
+                
                 // If we miss, add the direction to tried directions if we're in target mode
                 if (!this.huntMode && this.hitStack.length > 0) {
                     const [lastHitX, lastHitY] = this.hitStack[this.hitStack.length - 1];
                     const direction = this._getDirection(lastHitX, lastHitY, x, y);
+                    
                     if (direction && !this.triedDirections.includes(direction)) {
                         this.triedDirections.push(direction);
+                        console.log(`Added direction ${direction} to tried directions: [${this.triedDirections}]`);
                     }
                 }
+                
+                // IMPORTANT: We do NOT switch back to hunt mode on a miss if we have hits
+                // This ensures we keep trying to destroy the ship completely
             } else if (result === 'sunk') {
+                console.log('Ship sunk! Resetting targeting variables');
+                
                 // Reset targeting variables when a ship is sunk
                 this.huntMode = true;
                 this.hitStack = [];
@@ -620,6 +718,7 @@ class AIPlayer {
                 
                 // Update remaining ship lengths
                 this._updateRemainingShips();
+                console.log(`Remaining ship lengths: [${this.remainingShipLengths}]`);
             }
         }
     }
@@ -648,16 +747,29 @@ class AIPlayer {
         }
     }
     
-    // Helper method to determine the direction between two points
-    _getDirection(fromX, fromY, toX, toY) {
-        if (fromX === toX) {
-            if (fromY > toY) return 'up';
-            if (fromY < toY) return 'down';
-        } else if (fromY === toY) {
-            if (fromX > toX) return 'left';
-            if (fromX < toX) return 'right';
+    _getDirection(x1, y1, x2, y2) {
+        // Determine the cardinal direction from (x1,y1) to (x2,y2)
+        if (x1 === x2) {
+            if (y2 < y1) return 'up';
+            if (y2 > y1) return 'down';
+        } else if (y1 === y2) {
+            if (x2 < x1) return 'left';
+            if (x2 > x1) return 'right';
         }
-        return null; // Not in a cardinal direction
+        return null; // Not a cardinal direction
+    }
+    
+    _isStuckInTargeting() {
+        // This method determines if the AI is stuck in targeting mode
+        // We've modified the AI to NEVER give up on targeting mode if there are hits
+        // So this method now just checks if there are any valid moves left
+        
+        // If we have any hits, we're not stuck - we're actively working on a ship
+        if (this.hitStack.length > 0) {
+            return false;
+        }
+        
+        return true; // Only return true if we have no hits at all
     }
 }
 

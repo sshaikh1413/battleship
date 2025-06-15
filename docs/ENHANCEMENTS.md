@@ -51,11 +51,14 @@ This makes the AI more challenging in hard mode while keeping it manageable in e
 
 - **ENH-009**: Enhanced AI Targeting Strategy
   - Improved the AI's targeting strategy to make it more challenging and realistic
-  - Enhanced target mode to better select adjacent cells after a hit
+  - Enhanced target mode to better select adjacent coordinates after a hit
   - Added direction tracking to avoid retrying failed directions
   - Improved multi-hit targeting to detect ship orientation and target accordingly
   - Added gap detection to find ships with missed middle sections
-  - Implemented: 2025-06-15 00:05:30 CST
+  - Added persistent ship targeting to ensure ships are completely destroyed before moving on
+  - Implemented high-value target identification for coordinates adjacent to multiple hits
+  - Added logic to prevent the AI from giving up on partially hit ships
+  - Implemented: 2025-06-15 00:25:00 CST
   - Status: Completed
 
 - **ENH-005**: Advanced AI Difficulty Levels

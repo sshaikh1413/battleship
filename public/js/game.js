@@ -606,14 +606,17 @@ class Game {
                             this.aiUsedFirstMultiHit = true;
                         }
                     } else {
-                        // In hard mode, use multi-hit attacks strategically and deterministically
-                        // First attack around turn 3-5, second attack around turn 8-12
-                        if (this.aiPlayer.multiHitAttacksRemaining === 2 && this.aiTurnCount >= 3 && !this.aiUsedFirstMultiHit) {
+                        // In hard mode, ALWAYS use multi-hit attacks at specific turns
+                        // First attack at turn 3, second attack at turn 6
+                        // This ensures the AI will definitely use both attacks
+                        if (this.aiPlayer.multiHitAttacksRemaining === 2 && this.aiTurnCount === 3) {
                             useMultiHit = true;
                             this.aiUsedFirstMultiHit = true;
-                        } else if (this.aiPlayer.multiHitAttacksRemaining === 1 && this.aiTurnCount >= 8 && !this.aiUsedSecondMultiHit) {
+                            console.log('AI using first multi-hit attack at turn 3');
+                        } else if (this.aiPlayer.multiHitAttacksRemaining === 1 && this.aiTurnCount === 6) {
                             useMultiHit = true;
                             this.aiUsedSecondMultiHit = true;
+                            console.log('AI using second multi-hit attack at turn 6');
                         }
                     }
                 }

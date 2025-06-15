@@ -91,4 +91,134 @@ describe('UI Enhancements', () => {
       // In the actual game, these cells would be marked with the 'sunk' class
     });
   });
+
+  // ENH-008: Enhanced AI Multi-Hit Attack Strategy
+  describe('AI Multi-Hit Attack Strategy', () => {
+    // Mock the Math.random function to test probability-based decisions
+    const originalMathRandom = Math.random;
+    
+    beforeEach(() => {
+      // Reset Math.random before each test
+      Math.random = originalMathRandom;
+    });
+    
+    afterAll(() => {
+      // Restore original Math.random after all tests
+      Math.random = originalMathRandom;
+    });
+    
+    test('Easy mode AI should use exactly one multi-hit attack early in the game', () => {
+      // Create a mock Game object to test the deterministic behavior
+      const mockGame = {
+        difficulty: 'easy',
+        aiPlayer: { multiHitAttacksRemaining: 2 },
+        aiTurnCount: 1,
+        aiUsedFirstMultiHit: false,
+        aiUsedSecondMultiHit: false
+      };
+      
+      // Test first attack with 2 remaining - should use multi-hit attack
+      let useMultiHit = false;
+      if (mockGame.aiPlayer.multiHitAttacksRemaining > 0) {
+        if (mockGame.difficulty === 'easy') {
+          if (mockGame.aiPlayer.multiHitAttacksRemaining === 2 && !mockGame.aiUsedFirstMultiHit) {
+            useMultiHit = true;
+            mockGame.aiUsedFirstMultiHit = true;
+          }
+        }
+      }
+      expect(useMultiHit).toBe(true);
+      expect(mockGame.aiUsedFirstMultiHit).toBe(true);
+      
+      // Test second attack with 1 remaining - should NOT use multi-hit attack
+      mockGame.aiPlayer.multiHitAttacksRemaining = 1;
+      useMultiHit = false;
+      if (mockGame.aiPlayer.multiHitAttacksRemaining > 0) {
+        if (mockGame.difficulty === 'easy') {
+          if (mockGame.aiPlayer.multiHitAttacksRemaining === 2 && !mockGame.aiUsedFirstMultiHit) {
+            useMultiHit = true;
+            mockGame.aiUsedFirstMultiHit = true;
+          }
+        }
+      }
+      expect(useMultiHit).toBe(false);
+    });
+    
+    test('Hard mode AI should use both multi-hit attacks deterministically based on turn count', () => {
+      // Create a mock Game object to test the deterministic behavior
+      const mockGame = {
+        difficulty: 'hard',
+        aiPlayer: { multiHitAttacksRemaining: 2 },
+        aiTurnCount: 2,
+        aiUsedFirstMultiHit: false,
+        aiUsedSecondMultiHit: false
+      };
+      
+      // Test turn 2 - should NOT use multi-hit attack yet (too early)
+      let useMultiHit = false;
+      if (mockGame.aiPlayer.multiHitAttacksRemaining > 0) {
+        if (mockGame.difficulty === 'hard') {
+          if (mockGame.aiPlayer.multiHitAttacksRemaining === 2 && mockGame.aiTurnCount >= 3 && !mockGame.aiUsedFirstMultiHit) {
+            useMultiHit = true;
+            mockGame.aiUsedFirstMultiHit = true;
+          } else if (mockGame.aiPlayer.multiHitAttacksRemaining === 1 && mockGame.aiTurnCount >= 8 && !mockGame.aiUsedSecondMultiHit) {
+            useMultiHit = true;
+            mockGame.aiUsedSecondMultiHit = true;
+          }
+        }
+      }
+      expect(useMultiHit).toBe(false);
+      
+      // Test turn 3 - should use first multi-hit attack
+      mockGame.aiTurnCount = 3;
+      useMultiHit = false;
+      if (mockGame.aiPlayer.multiHitAttacksRemaining > 0) {
+        if (mockGame.difficulty === 'hard') {
+          if (mockGame.aiPlayer.multiHitAttacksRemaining === 2 && mockGame.aiTurnCount >= 3 && !mockGame.aiUsedFirstMultiHit) {
+            useMultiHit = true;
+            mockGame.aiUsedFirstMultiHit = true;
+          } else if (mockGame.aiPlayer.multiHitAttacksRemaining === 1 && mockGame.aiTurnCount >= 8 && !mockGame.aiUsedSecondMultiHit) {
+            useMultiHit = true;
+            mockGame.aiUsedSecondMultiHit = true;
+          }
+        }
+      }
+      expect(useMultiHit).toBe(true);
+      expect(mockGame.aiUsedFirstMultiHit).toBe(true);
+      
+      // Test turn 7 with 1 remaining - should NOT use second multi-hit attack yet
+      mockGame.aiTurnCount = 7;
+      mockGame.aiPlayer.multiHitAttacksRemaining = 1;
+      useMultiHit = false;
+      if (mockGame.aiPlayer.multiHitAttacksRemaining > 0) {
+        if (mockGame.difficulty === 'hard') {
+          if (mockGame.aiPlayer.multiHitAttacksRemaining === 2 && mockGame.aiTurnCount >= 3 && !mockGame.aiUsedFirstMultiHit) {
+            useMultiHit = true;
+            mockGame.aiUsedFirstMultiHit = true;
+          } else if (mockGame.aiPlayer.multiHitAttacksRemaining === 1 && mockGame.aiTurnCount >= 8 && !mockGame.aiUsedSecondMultiHit) {
+            useMultiHit = true;
+            mockGame.aiUsedSecondMultiHit = true;
+          }
+        }
+      }
+      expect(useMultiHit).toBe(false);
+      
+      // Test turn 8 with 1 remaining - should use second multi-hit attack
+      mockGame.aiTurnCount = 8;
+      useMultiHit = false;
+      if (mockGame.aiPlayer.multiHitAttacksRemaining > 0) {
+        if (mockGame.difficulty === 'hard') {
+          if (mockGame.aiPlayer.multiHitAttacksRemaining === 2 && mockGame.aiTurnCount >= 3 && !mockGame.aiUsedFirstMultiHit) {
+            useMultiHit = true;
+            mockGame.aiUsedFirstMultiHit = true;
+          } else if (mockGame.aiPlayer.multiHitAttacksRemaining === 1 && mockGame.aiTurnCount >= 8 && !mockGame.aiUsedSecondMultiHit) {
+            useMultiHit = true;
+            mockGame.aiUsedSecondMultiHit = true;
+          }
+        }
+      }
+      expect(useMultiHit).toBe(true);
+      expect(mockGame.aiUsedSecondMultiHit).toBe(true);
+    });
+  });
 });

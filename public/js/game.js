@@ -209,6 +209,11 @@ class Game {
         this.multiHitAttacksRemaining = 2;
         this.usingMultiHitAttack = false;
         
+        // Track AI turn count and multi-hit attack usage for deterministic behavior
+        this.aiTurnCount = 0;
+        this.aiUsedFirstMultiHit = false;
+        this.aiUsedSecondMultiHit = false;
+        
         // No longer need selectedShip since ships are placed automatically
         this.isPlacing = false;
         this.setupUI();
@@ -582,12 +587,36 @@ class Game {
 
         // Show AI is thinking
         this.statusText.textContent = 'AI is thinking...';
+        
+        // Increment AI turn counter
+        this.aiTurnCount++;
 
         // Add a small delay for better UX (reduced for faster gameplay)
         setTimeout(() => {
             try {
-                // Decide whether to use multi-hit attack (30% chance if available)
-                const useMultiHit = this.aiPlayer.multiHitAttacksRemaining > 0 && Math.random() < 0.3;
+                // Decide whether to use multi-hit attack based on difficulty level
+                let useMultiHit = false;
+                
+                if (this.aiPlayer.multiHitAttacksRemaining > 0) {
+                    if (this.difficulty === 'easy') {
+                        // In easy mode, use exactly one multi-hit attack early in the game
+                        // Use it when AI has 2 attacks remaining (first opportunity)
+                        if (this.aiPlayer.multiHitAttacksRemaining === 2 && !this.aiUsedFirstMultiHit) {
+                            useMultiHit = true;
+                            this.aiUsedFirstMultiHit = true;
+                        }
+                    } else {
+                        // In hard mode, use multi-hit attacks strategically and deterministically
+                        // First attack around turn 3-5, second attack around turn 8-12
+                        if (this.aiPlayer.multiHitAttacksRemaining === 2 && this.aiTurnCount >= 3 && !this.aiUsedFirstMultiHit) {
+                            useMultiHit = true;
+                            this.aiUsedFirstMultiHit = true;
+                        } else if (this.aiPlayer.multiHitAttacksRemaining === 1 && this.aiTurnCount >= 8 && !this.aiUsedSecondMultiHit) {
+                            useMultiHit = true;
+                            this.aiUsedSecondMultiHit = true;
+                        }
+                    }
+                }
                 
                 if (useMultiHit) {
                     // Get AI move for multi-hit attack center point

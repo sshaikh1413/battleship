@@ -20,6 +20,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Status: Planned
 
 ### Implemented
+- **ENH-008**: Enhanced AI Multi-Hit Attack Strategy
+
+**Status: Completed**
+
+Enhanced the AI's use of multi-hit attacks based on difficulty level:
+
+- Easy mode: AI uses exactly one multi-hit attack early in the game (first opportunity)
+- Hard mode: AI uses both multi-hit attacks deterministically - first attack around turn 3-5, second attack around turn 8-12
+
+This makes the AI more challenging in hard mode while keeping it manageable in easy mode.
+
+  - Implemented: 2025-06-14 23:14:54 CST
+  - Status: Completed
+
 - **ENH-007**: Improved Game Pacing
   - Reduced AI turn delay by 50% (from 1000ms to 500ms)
   - Reduced transition delay between player and AI turns by 50% (from 500ms to 250ms)
@@ -33,6 +47,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Prevents accidental use during setup phase
   - Provides clearer user interface guidance
   - Implemented: 2025-06-14 14:23:25 CST
+  - Status: Completed
+
+- **ENH-009**: Enhanced AI Targeting Strategy
+  - Improved the AI's targeting strategy to make it more challenging and realistic
+  - Enhanced target mode to better select adjacent cells after a hit
+  - Added direction tracking to avoid retrying failed directions
+  - Improved multi-hit targeting to detect ship orientation and target accordingly
+  - Added gap detection to find ships with missed middle sections
+  - Implemented: 2025-06-15 00:05:30 CST
   - Status: Completed
 
 - **ENH-005**: Advanced AI Difficulty Levels

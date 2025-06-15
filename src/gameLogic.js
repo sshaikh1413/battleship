@@ -353,17 +353,28 @@ class AIPlayer {
         
         // Otherwise, use the basic targeting approach but with probability weighting
         const [lastX, lastY] = this.hitStack[0] || this.lastHit;
-        const directions = [
-            [lastX - 1, lastY],
-            [lastX + 1, lastY],
-            [lastX, lastY - 1],
-            [lastX, lastY + 1]
+        
+        // Define directions in a specific order: prioritize directions not yet tried
+        const allDirections = [
+            ['right', [lastX + 1, lastY]],
+            ['left', [lastX - 1, lastY]],
+            ['down', [lastX, lastY + 1]],
+            ['up', [lastX, lastY - 1]]
         ];
-
-        const validMoves = directions.filter(([x, y]) => 
-            x >= 0 && x < 10 && y >= 0 && y < 10 && 
-            this.shotHistory[y][x] === null
-        );
+        
+        // Filter out directions we've already tried
+        const untried = allDirections.filter(([dir, _]) => !this.triedDirections.includes(dir));
+        
+        // If we have untried directions, prioritize those
+        const directionsToCheck = untried.length > 0 ? untried : allDirections;
+        
+        // Get valid moves from our directions
+        const validMoves = directionsToCheck
+            .map(([_, coords]) => coords)
+            .filter(([x, y]) => 
+                x >= 0 && x < 10 && y >= 0 && y < 10 && 
+                this.shotHistory[y][x] === null
+            );
         
         if (validMoves.length > 0) {
             // Weight the moves by probability
@@ -388,6 +399,7 @@ class AIPlayer {
             // If no valid moves around the hit, revert to hunt mode
             this.huntMode = true;
             this.hitStack = [];
+            this.triedDirections = [];
             return this._getHuntModeShot();
         }
     }
@@ -398,20 +410,31 @@ class AIPlayer {
         // Check if hits are in a horizontal line
         const horizontalHits = hits.filter(([x, y]) => y === hits[0][1]);
         if (horizontalHits.length > 1) {
+            // Set current direction for better tracking
+            this.currentDirection = 'horizontal';
+            
             // Sort by x coordinate
             horizontalHits.sort((a, b) => a[0] - b[0]);
             const minX = horizontalHits[0][0];
             const maxX = horizontalHits[horizontalHits.length - 1][0];
             const y = hits[0][1];
             
-            // Try left side if valid
-            if (minX > 0 && this.shotHistory[y][minX-1] === null) {
+            // Check for gaps in the horizontal line (could be a ship with a missed shot)
+            for (let x = minX + 1; x < maxX; x++) {
+                if (this.shotHistory[y][x] === null) {
+                    this.possibleHits.add(`${x},${y}`);
+                    return [x, y]; // Target the gap first
+                }
+            }
+            
+            // Try left side if valid and not already tried
+            if (minX > 0 && this.shotHistory[y][minX-1] === null && !this.triedDirections.includes('left')) {
                 this.possibleHits.add(`${minX-1},${y}`);
                 return [minX-1, y];
             }
             
-            // Try right side if valid
-            if (maxX < 9 && this.shotHistory[y][maxX+1] === null) {
+            // Try right side if valid and not already tried
+            if (maxX < 9 && this.shotHistory[y][maxX+1] === null && !this.triedDirections.includes('right')) {
                 this.possibleHits.add(`${maxX+1},${y}`);
                 return [maxX+1, y];
             }
@@ -420,26 +443,57 @@ class AIPlayer {
         // Check if hits are in a vertical line
         const verticalHits = hits.filter(([x, y]) => x === hits[0][0]);
         if (verticalHits.length > 1) {
+            // Set current direction for better tracking
+            this.currentDirection = 'vertical';
+            
             // Sort by y coordinate
             verticalHits.sort((a, b) => a[1] - b[1]);
             const minY = verticalHits[0][1];
             const maxY = verticalHits[verticalHits.length - 1][1];
             const x = hits[0][0];
             
-            // Try top side if valid
-            if (minY > 0 && this.shotHistory[minY-1][x] === null) {
+            // Check for gaps in the vertical line
+            for (let y = minY + 1; y < maxY; y++) {
+                if (this.shotHistory[y][x] === null) {
+                    this.possibleHits.add(`${x},${y}`);
+                    return [x, y]; // Target the gap first
+                }
+            }
+            
+            // Try top side if valid and not already tried
+            if (minY > 0 && this.shotHistory[minY-1][x] === null && !this.triedDirections.includes('up')) {
                 this.possibleHits.add(`${x},${minY-1}`);
                 return [x, minY-1];
             }
             
-            // Try bottom side if valid
-            if (maxY < 9 && this.shotHistory[maxY+1][x] === null) {
+            // Try bottom side if valid and not already tried
+            if (maxY < 9 && this.shotHistory[maxY+1][x] === null && !this.triedDirections.includes('down')) {
                 this.possibleHits.add(`${x},${maxY+1}`);
                 return [x, maxY+1];
             }
         }
         
-        // If we can't determine a clear direction, fall back to basic targeting
+        // If we can't determine a clear direction or have tried all directions,
+        // try any adjacent cell to any hit that hasn't been tried yet
+        for (const [hitX, hitY] of hits) {
+            const adjacentCells = [
+                ['right', [hitX + 1, hitY]],
+                ['left', [hitX - 1, hitY]],
+                ['down', [hitX, hitY + 1]],
+                ['up', [hitX, hitY - 1]]
+            ];
+            
+            for (const [dir, [x, y]] of adjacentCells) {
+                if (x >= 0 && x < 10 && y >= 0 && y < 10 && 
+                    this.shotHistory[y][x] === null && 
+                    !this.triedDirections.includes(dir)) {
+                    this.possibleHits.add(`${x},${y}`);
+                    return [x, y];
+                }
+            }
+        }
+        
+        // If we've tried all reasonable options, fall back to basic targeting
         return this._getTargetModeShot();
     }
     
@@ -530,21 +584,31 @@ class AIPlayer {
                 this.huntMode = false;
                 this.hitStack.push([x, y]);
                 
-                // If we have multiple hits, try to determine ship orientation
+                // Determine ship orientation if we have multiple hits
                 if (this.hitStack.length > 1) {
                     this._determineShipOrientation();
                 }
-            } else if (result === 'miss') {
-                // Don't immediately revert to hunt mode - only if we've exhausted all directions
-                if (this.currentDirection) {
-                    this.triedDirections.push(this.currentDirection);
+                
+                // Reset tried directions when we get a new hit to ensure we explore all options
+                if (this.hitStack.length === 1) {
+                    this.triedDirections = [];
+                }
+                
+                // If we've tried all directions and still have hits, we might be dealing with multiple ships
+                // or a complex situation - don't reset to hunt mode too early
+                if (this.triedDirections.length >= 4 && this.hitStack.length <= 1) {
+                    this.huntMode = true;
+                    this.hitStack = [];
+                    this.triedDirections = [];
                     this.currentDirection = null;
-                    
-                    // If we've tried all directions around the first hit, revert to hunt
-                    if (this.triedDirections.length >= 4) {
-                        this.huntMode = true;
-                        this.hitStack = [];
-                        this.triedDirections = [];
+                }
+            } else if (result === 'miss') {
+                // If we miss, add the direction to tried directions if we're in target mode
+                if (!this.huntMode && this.hitStack.length > 0) {
+                    const [lastHitX, lastHitY] = this.hitStack[this.hitStack.length - 1];
+                    const direction = this._getDirection(lastHitX, lastHitY, x, y);
+                    if (direction && !this.triedDirections.includes(direction)) {
+                        this.triedDirections.push(direction);
                     }
                 }
             } else if (result === 'sunk') {
@@ -582,6 +646,18 @@ class AIPlayer {
         if (this.remainingShipLengths.length > 0) {
             this.remainingShipLengths.pop();
         }
+    }
+    
+    // Helper method to determine the direction between two points
+    _getDirection(fromX, fromY, toX, toY) {
+        if (fromX === toX) {
+            if (fromY > toY) return 'up';
+            if (fromY < toY) return 'down';
+        } else if (fromY === toY) {
+            if (fromX > toX) return 'left';
+            if (fromX < toX) return 'right';
+        }
+        return null; // Not in a cardinal direction
     }
 }
 

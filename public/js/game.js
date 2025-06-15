@@ -113,12 +113,18 @@ class GameBoard {
 }
 
 class AIPlayer {
-    constructor() {
+    constructor(difficulty = 'easy') {
         this.board = new GameBoard();
+        this.difficulty = difficulty;
         this.huntMode = true;
         this.lastHit = null;
         this.direction = null;
         this.possibleHits = new Set();
+        
+        // Multi-hit attack capability
+        this.multiHitAttacksRemaining = 2;
+        this.usingMultiHitAttack = false;
+        
         this.ships = [
             new Ship(5, 'Carrier'),
             new Ship(4, 'Battleship'),

@@ -20,6 +20,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Status: Planned
 
 ### Implemented
+- **ENH-010**: Fixed AI Multi-Hit Attack Deterministic Logic
+
+**Status: Completed**
+
+Fixed critical bug where AI Multi-Hit Attack feature was not executing in practice despite correct-looking deterministic logic:
+
+- Root cause: Missing `multiHitAttacksRemaining` and `usingMultiHitAttack` property initialization in AIPlayer constructor
+- Solution: Added proper property initialization to match src/gameLogic.js implementation
+- Result: AI now successfully uses multi-hit attacks at turns 3 and 6 in hard mode as intended
+- Verified through comprehensive browser testing and console logging
+- All existing tests continue to pass (33/33)
+
+  - Implemented: 2025-06-15 04:16:27 UTC
+  - Implemented by: Devin AI
+  - Status: Completed
+
 - **ENH-008**: Enhanced AI Multi-Hit Attack Strategy
 
 **Status: Completed**

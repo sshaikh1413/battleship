@@ -225,6 +225,10 @@ class Game {
         this.setupUI();
         this.placeShipsRandomly();
         
+        // Initially disable AI board until game starts
+        this.aiGrid.style.pointerEvents = 'none';
+        this.aiGrid.classList.add('ai-board-disabled');
+        
         // Place AI ships
         this.aiPlayer.placeShips();
     }
@@ -510,6 +514,7 @@ class Game {
         this.isPlacing = false;
         this.currentPlayer = 'player';
         this.aiGrid.style.pointerEvents = 'auto';
+        this.aiGrid.classList.remove('ai-board-disabled');
         this.statusText.textContent = 'Game started! Your turn!';
         this.startButton.disabled = true;
         document.getElementById('regenerate-ships').disabled = true;
@@ -581,6 +586,7 @@ class Game {
     regenerateShips() {
         this.isPlacing = true;
         this.aiGrid.style.pointerEvents = 'none';
+        this.aiGrid.classList.add('ai-board-disabled');
         this.placeShipsRandomly();
     }
 

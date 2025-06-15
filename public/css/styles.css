@@ -293,3 +293,13 @@ button:disabled {
     background-color: #95a5a6;
     cursor: not-allowed;
 }
+
+/* Disabled AI board styles */
+.ai-board-disabled {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.ai-board-disabled .grid-cell {
+    cursor: not-allowed;
+}

@@ -63,6 +63,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Random ship placement with regenerate functionality
 
 ### Fixed
+- **BUG-010**: AI Board Interactions Enabled Before Game Start
+  - Fixed by adding CSS disabled state and modifying game initialization
+  - AI board now visually appears disabled (reduced opacity, disabled cursor)
+  - Pointer events disabled until "Start Game" is clicked
+  - Date: 2025-06-15 08:47:21 UTC
+  - Status: Resolved
+  - Files Modified: `public/css/styles.css`, `public/js/game.js`
 - **BUG-001**: Ships could be placed outside grid boundaries
   - Fixed by adding boundary checks in the placement algorithm
   - Date: 2025-06-14 00:00:00 CST

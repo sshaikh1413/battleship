@@ -1,6 +1,6 @@
 # Battleship Game
 
-A browser-based implementation of the classic Battleship game where you play against an AI opponent.
+A browser-based implementation of the classic Battleship game where you play against an AI opponent. See a demo version of the game here: https://sshaikh1413.github.io/battleship/public/index.html
 
 ![Battleship Game Screenshot](screenshot.png)
 

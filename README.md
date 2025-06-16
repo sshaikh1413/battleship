@@ -103,10 +103,6 @@ Potential future improvements include:
 - Multiplayer support
 - Persistent statistics and high scores
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ## Acknowledgments
 
 - Inspired by the classic Battleship board game by Hasbro

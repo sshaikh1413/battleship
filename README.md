@@ -20,8 +20,6 @@ This Battleship game is a web-based implementation of the classic board game. Pl
 - Two AI difficulty levels (Easy and Hard)
 - Multi-hit targeting feature with limited uses
 - Advanced AI with probability density mapping in Hard mode
-- Comprehensive test suite to ensure game logic works correctly
-
 ## How to Play
 
 1. When the game loads, your ships are automatically placed on your board (left grid)
@@ -64,9 +62,6 @@ You can run the game using any basic HTTP server. Here are a few options:
 ### Using Python (recommended for simplicity)
 
 ```bash
-# Navigate to the public directory
-cd public
-
 # Python 3
 python -m http.server 8000
 
@@ -84,8 +79,7 @@ If you have Node.js installed, you can use the http-server package:
 # Install http-server globally if you haven't already
 npm install -g http-server
 
-# Run the server from the public directory
-cd public
+# Run the server from the root directory
 http-server -p 8000
 ```
 

@@ -2,18 +2,12 @@
 
 A browser-based implementation of the classic Battleship game where you play against an AI opponent. See a demo version of the game here: https://sshaikh1413.github.io/battleship/public/index.html
 
-![Battleship Game Screenshot](screenshot.png)
-
 ## Table of Contents
 - [Game Overview](#game-overview)
 - [How to Play](#how-to-play)
 - [Ship Types](#ship-types)
-- [Installation & Setup](#installation--setup)
 - [Running the Game](#running-the-game)
-- [Running Tests](#running-tests)
 - [Technologies Used](#technologies-used)
-- [Project Structure](#project-structure)
-- [Enhancements & Bug Fixes](#enhancements--bug-fixes)
 - [Future Improvements](#future-improvements)
 
 ## Game Overview
@@ -26,7 +20,6 @@ This Battleship game is a web-based implementation of the classic board game. Pl
 - Two AI difficulty levels (Easy and Hard)
 - Multi-hit targeting feature with limited uses
 - Advanced AI with probability density mapping in Hard mode
-- Comprehensive test suite to ensure game logic works correctly
 
 ## How to Play
 
@@ -56,28 +49,12 @@ The game includes five different ships, each with a unique color:
 - **Submarine** (3 cells) - Orange
 - **Patrol Boat** (2 cells) - Blue
 
-## Installation & Setup
-
-### Prerequisites
-
-- Node.js (for running tests)
-- A modern web browser (Chrome, Firefox, Safari, Edge)
-- Basic HTTP server capability (Python or any web server)
-
-### Clone the Repository
+## Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/battleship-game.git
-cd battleship-game
+git clone https://github.com/sshaikh1413/battleship.git
+cd battleship
 ```
-
-### Install Dependencies
-
-```bash
-npm install
-```
-
-This will install Jest for running the test suite.
 
 ## Running the Game
 
@@ -86,9 +63,6 @@ You can run the game using any basic HTTP server. Here are a few options:
 ### Using Python (recommended for simplicity)
 
 ```bash
-# Navigate to the public directory
-cd public
-
 # Python 3
 python -m http.server 8000
 
@@ -106,69 +80,19 @@ If you have Node.js installed, you can use the http-server package:
 # Install http-server globally if you haven't already
 npm install -g http-server
 
-# Run the server from the public directory
-cd public
+# Run the server from the root directory
 http-server -p 8000
 ```
 
 Then open your browser and navigate to: `http://localhost:8000`
-
-## Running Tests
-
-The game includes a comprehensive test suite built with Jest. To run the tests:
-
-```bash
-npm test
-```
-
-This will run all tests and show the results in the terminal. For more details about the testing approach, see the [TESTING.md](TESTING.md) file.
 
 ## Technologies Used
 
 - **HTML5**: Structure and layout
 - **CSS3**: Styling and animations
 - **JavaScript (ES6+)**: Game logic and interactivity
-- **Jest**: Testing framework
-- **Node.js**: Development environment and test runner
 
 No external libraries or frameworks are used for the game itself, making it lightweight and fast to load.
-
-## Project Structure
-
-```
-battleship-game/
-├── public/                   # All public-facing assets
-│   ├── css/                  # CSS files
-│   │   └── styles.css
-│   ├── js/                   # Frontend JavaScript
-│   │   └── game.js
-│   ├── images/               # Images and icons
-│   └── index.html            # Main HTML file
-├── src/                      # Source code
-│   └── gameLogic.js          # Core game logic
-├── tests/                    # Test files
-│   ├── ship.test.js
-│   ├── gameBoard.test.js
-│   ├── aiPlayer.test.js
-│   └── enhancements.test.js
-├── docs/                     # Documentation
-│   ├── ENHANCEMENTS.md
-│   ├── TESTING.md
-│   └── CHANGELOG.md
-├── package.json              # NPM dependencies and scripts
-├── package-lock.json
-└── README.md                 # Project overview
-```
-
-## Enhancements & Bug Fixes
-
-The game has undergone several enhancements and bug fixes. For a detailed list, see the [ENHANCEMENTS.md](ENHANCEMENTS.md) file.
-
-Key enhancements include:
-- Unique colors for different ship types
-- Skull indicators for sunk ships
-- Ship legend with color coordination
-- Improved AI targeting logic
 
 ## Future Improvements
 
